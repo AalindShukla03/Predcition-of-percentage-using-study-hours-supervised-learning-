@@ -69,8 +69,84 @@ The dataset is collected from a source and includes two columns: 'Hours' represe
     from sklearn import metrics  
     print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
 
-
 # Comparing Actual vs Predicted
     df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})  
     df 
+</li>
+
+## Step to integrate a flask app for real time implementation
+## Creating a flask app
+<ul>
+  <li>
+    
+## Flask app code
+    from flask import Flask, render_template, request
+    import pandas as pd
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
+
+    app = Flask(__name__)
+
+    # Load the data
+    url = "http://bit.ly/w-data"
+    s_data = pd.read_csv(url)
+
+    # Train the linear regression model
+    X = s_data.iloc[:, :-1].values  
+    y = s_data.iloc[:, 1].values 
+    regressor = LinearRegression()  
+    regressor.fit(X, y)
+
+    @app.route('/')
+    def home():
+        return render_template('index.html')
+
+    @app.route('/predict', methods=['POST'])
+    def predict():
+        if request.method == 'POST':
+            hours = float(request.form['hours'])
+            # Make prediction using the model
+            prediction = regressor.predict([[hours]])[0]
+            return render_template('result.html', hours=hours, prediction=prediction)
+
+    if __name__ == '__main__':
+        app.run(debug=True)
+        
+ ## USER INTERFACE HTML
+ You'll need to create two HTML templates, index.html and result.html, and place them in a folder named templates in the same directory as your Flask app.
+ ## Rndex.html
+     <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Study Hours Predictor</title>
+    </head>
+    <body>
+        <h1>Enter your study hours</h1>
+        <form action="/predict" method="post">
+            <label for="hours">Study Hours:</label>
+            <input type="text" id="hours" name="hours" required>
+            <button type="submit">Predict</button>
+        </form>
+    </body>
+    </html>
+ ## Result.html
+     <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Result</title>
+    </head>
+    <body>
+        <h1>Your Study Result Prediction</h1>
+        <p>You have studied {{ hours }} hours.</p>
+        <p>Predicted Score: {{ prediction }}</p>
+        <a href="/">Go back to enter more hours</a>
+    </body>
+    </html>
+
+
+
 </li>
